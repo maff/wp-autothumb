@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
 Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
