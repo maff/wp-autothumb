@@ -4,55 +4,51 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.2
+Version: 0.3
 Author URI: http://ailoo.net/
 */
 
 define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
 
 
-/* Option Panel (thanks to Ben for this addition - see comment on plugin home page)
+/* Option Panel (thanks to Ben for this addition - see comments on plugin home page)
 ------------------------------------------------------------------------------------- */
 
-add_option('autothumb_high_security_password', 'Type your PHPThumb high security password here', '', true);
+add_option('autothumb_high_security_password', 'Type your own password here', '', true);
 
 function autothumb_add_options()
 {
-        add_options_page('Autothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
+    add_options_page('Authothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
 }
 
 function autothumb_options_subpanel()
 {
-        include('autothumb-options-panel.php');
+    include('autothumb-options-panel.php');
 }
 
-function autothumb_update_password()
+function autothumb_update_high_security_password()
 {
         $configFile = AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php';
+        $config = file($configFile);
         
-        // retrieve the file into an array where each line is a value
-        $arr = file($configFile);
-        
-        // now find the line in the config file that starts with the assignment of
         $needle = "/^\s*\\\$PHPTHUMB\_CONFIG\[\'high_security_password.*/";
         
         $i = 0;
-        foreach($arr as $line){
-                $line = rtrim($line, "\r\n") . PHP_EOL;
+        foreach($config as $line){
+            $line = rtrim($line, "\r\n") . PHP_EOL;
+            if(preg_match($needle, $line))
+                $results[] = $i;
                 
-                if(preg_match($needle, $line))
-                    $results[] = $i;
-                
-                $i++;
+            ++$i;
         }
         
-        $arr[$results[0]] = "\$PHPTHUMB_CONFIG['high_security_password']   = '" . get_option('autothumb_high_security_password') . "'; // Altered by AutoThumb. " . PHP_EOL;
+        $config[$results[0]]="\$PHPTHUMB_CONFIG['high_security_password']   = '".get_option('autothumb_high_security_password')."'; // Altered by AutoThumb." . PHP_EOL;
 
-        file_put_contents($configFile, implode($arr));
+        file_put_contents($configFile, implode($config));
 }
 
 add_action('admin_menu', 'autothumb_add_options');
-add_action('update_option_autothumb_password', 'autothumb_update_password');
+add_action('update_option_autothumb_high_security_password', 'autothumb_update_high_security_password');
 
 
 /* Plugin
