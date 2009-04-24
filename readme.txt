@@ -15,7 +15,7 @@ See the [plugin page](http://maff.ailoo.net/projects/autothumb/) for more detail
 == Installation ==
 
 1. Download the .zip file and extract it.
-1. Upload the plugin to your `/wp-content/plugins/` and make sure your web server has write access to the cache folder.
+1. Upload the plugin to your `/wp-content/plugins/` directory and make sure your web server has write access to the cache folder and the config file.
 1. Activate the plugin.
-1. Go to Settings - Autothumb and set a password for PHPThumb. This is important to prevent abusing of the script.
+1. Go to Settings - Autothumb and set a password for PHPThumb. This is important to prevent abuse of the script.
 1. Have fun!
