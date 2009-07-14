@@ -4,7 +4,7 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.3
+Version: 0.3.1
 Author URI: http://ailoo.net/
 */
 
@@ -18,7 +18,7 @@ add_option('autothumb_high_security_password', 'Type your own password here', ''
 
 function autothumb_add_options()
 {
-    add_options_page('Authothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
+    add_options_page('Autothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
 }
 
 function autothumb_options_subpanel()
