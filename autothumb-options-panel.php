@@ -41,7 +41,7 @@
             <div class="postbox">
                 <h3>Information</h3>
                 <div class="inside less">
-                    <p>Plugin: AutoThumb | Version: 0.3 | <?php _e('Author') ?>: <a href="http://ailoo.net">Mathias Geat</a><br /></p>
+                    <p>Plugin: AutoThumb | Version: 0.3.1.1 | <?php _e('Author') ?>: <a href="http://ailoo.net">Mathias Geat</a><br /></p>
                 </div>
             </div>
         </div>
