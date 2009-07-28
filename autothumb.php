@@ -66,105 +66,107 @@ function autothumb($content)
     $imagereplace = array();
     
     $pattern = '/<img[^>]*>/';
-    preg_match_all($pattern, $content, $replace);
+    preg_match_all($pattern, $content, $toReplace);
     
-    $basePath = str_replace('\\', '/', dirname(__FILE__));
-    $basePath = str_replace('wp-content/plugins/autothumb', '', $basePath);
-    $basePath = str_replace($_SERVER['DOCUMENT_ROOT'], '', $basePath);
+    // get relative path from document root (e.g. if WP is installed in subdirectory)
+    $relativePath = str_replace('\\', '/', AUTOTHUMB_PATH);
+    $relativePath = str_replace('wp-content/plugins/autothumb/', '', $relativePath);
+    $relativePath = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $relativePath);
     
     if(substr($basePath, 0, 1) != '/')
         $basePath = '/' . $basePath;
     
-    for($n = 0; $n < count($replace[0]); $n++) {        
-        $imagetag = $replace[0][$n];
+    for($n = 0; $n < count($toReplace[0]); $n++) {        
+        $imagetag = $toReplace[0][$n];
         
         $search = array();
         $result = array();
         $image = array();
         
+        $search['src'] = '/src="([^"]*)"/';
         $search['width'] = '/width="[0-9]+"/';
         $search['height'] = '/height="[0-9]+"/';
-        $search['src'] = '/src="([^"]*)"/';
         $search['imagephp'] = '/image.php/';
         $search['phpthumb'] = '/phpThumb.php/';
         
+        preg_match($search['src'], $imagetag, $result['src']);
         preg_match($search['width'], $imagetag, $result['width']);
         preg_match($search['height'], $imagetag, $result['height']);
-        preg_match($search['src'], $imagetag, $result['src']);
         
-        if(!empty($result['width'][0])) {
-            $image['width'] = str_replace('width="', '', $result['width'][0]);
-            $image['width'] = trim(str_replace('"', '', $image['width']));
-        }
-        
-        if(!empty($result['height'][0])) {
-            $image['height'] = str_replace('height="', '', $result['height'][0]);
-            $image['height'] = trim(str_replace('"', '', $image['height']));
-        }
-        
-        if(!empty($result['src'][1])) $image['src'] = $result['src'][1];
-        
-        preg_match($search['imagephp'], $image['src'], $result['imagephp']);
-        preg_match($search['phpthumb'], $image['src'], $result['phpthumb']);
-
-        if(count($result['imagephp']) == 0 && count($result['phpthumb']) == 0) {
-            if(strpos($image['src'], $_SERVER['HTTP_HOST']) !== false) {        
-                $image['src'] = str_replace(get_bloginfo('url') . '/', $basePath, $image['src']);
+        $result['src'][1] = trim($result['src'][1]);
+        if(!empty($result['src'][1])) {
+            $image['src'] = $result['src'][1];
+            
+            if(strotolower(substr($image['src'], 0, 1)) == '/') {
+                $image['src'] = str_replace($_SERVER['DOCUMENT_ROOT'], $relativePath, $image['src']);
+            } elseif(strotolower(substr($image['src'], 0, 1)) != '/') {
+                $image['src'] = $relativePath . $image['src'];
             }
             
-            $ptoptions = array();
-            if(!empty($image['width'])) $ptoptions[] = 'w=' . $image['width'];
-            if(!empty($image['height'])) $ptoptions[] = 'h=' . $image['height'];
+            if(!empty($result['width'][0])) {
+                $image['width'] = str_replace('width="', '', $result['width'][0]);
+                $image['width'] = trim(str_replace('"', '', $image['width']));
+            }
             
-            // allow enlargement of images, uncomment this if you want
-            $ptoptions[] = 'aoe=1';
+            if(!empty($result['height'][0])) {
+                $image['height'] = str_replace('height="', '', $result['height'][0]);
+                $image['height'] = trim(str_replace('"', '', $image['height']));
+            }
             
-            // thanks to netProphET for this addition
-            // this allows you to set phpthumb parameters in the image URL
-            // see http://modxcms.com/forums/index.php/topic,14858.msg102750.html#msg102750
-            if(preg_match("/^([^\?]*)\?(.*)$/", $image['src'], $ma)) {
-                $aParam = array();
-                $image['src'] = $ma[1];
+            preg_match($search['imagephp'], $image['src'], $result['imagephp']);
+            preg_match($search['phpthumb'], $image['src'], $result['phpthumb']);
+
+            if(count($result['imagephp']) == 0 && count($result['phpthumb']) == 0) {
+                $ptoptions = array();
+                if(!empty($image['width'])) $ptoptions[] = 'w=' . $image['width'];
+                if(!empty($image['height'])) $ptoptions[] = 'h=' . $image['height'];
                 
-                $ma[2] = str_replace('{}', '[]', $ma[2]);
-                parse_str(urldecode($ma[2]), $aParam);
+                // allow enlargement of images, uncomment this if you want
+                $ptoptions[] = 'aoe=1';
                 
-                foreach($aParam as $k => $param) {
-                    // clean parameter keys
-                    $k = str_replace('#038;', '', $k);
-                    $k = str_replace('amp;', '', $k);
+                // thanks to netProphET for this addition
+                // this allows you to set phpthumb parameters in the image URL
+                // see http://modxcms.com/forums/index.php/topic,14858.msg102750.html#msg102750
+                if(preg_match("/^([^\?]*)\?(.*)$/", $image['src'], $ma)) {
+                    $aParam = array();
+                    $image['src'] = $ma[1];
                     
-                    if(is_array($param) && count($param) > 0)
-                    {
-                        foreach($param as $element)
-                            $ptoptions[] = "{$k}[]={$element}";
-                    }
-                    else
-                    {
-                        $ptoptions[] = "{$k}={$param}";
+                    $ma[2] = str_replace('{}', '[]', $ma[2]);
+                    parse_str(urldecode($ma[2]), $aParam);
+                    
+                    foreach($aParam as $k => $param) {
+                        // clean parameter keys
+                        $k = str_replace('#038;', '', $k);
+                        $k = str_replace('amp;', '', $k);
+                        
+                        if(is_array($param) && count($param) > 0)
+                        {
+                            foreach($param as $element)
+                                $ptoptions[] = "{$k}[]={$element}";
+                        }
+                        else
+                        {
+                            $ptoptions[] = "{$k}={$param}";
+                        }
                     }
                 }
+                unset($aParam, $param);
+                
+                $ptoptionstring = '';
+                for($i = 0; $i < count($ptoptions); $i++) {
+                    if($i != 0) $ptoptionstring .= '&';
+                    $ptoptionstring .= $ptoptions[$i];
+                }
+                
+                $newsrc = getphpthumburl($image['src'], $ptoptionstring);
+                $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
+                $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
+                $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
+                $newtag = str_replace('  ', ' ', $newtag);
+                
+                $imagesearch[$n] = $imagetag;
+                $imagereplace[$n] = $newtag;
             }
-            unset($aParam, $param);
-            
-            $ptoptionstring = '';
-            for($i = 0; $i < count($ptoptions); $i++) {
-                if($i != 0) $ptoptionstring .= '&';
-                $ptoptionstring .= $ptoptions[$i];
-            }
-            
-            if((substr($image['src'], 0, 1) != '/') &&(substr($image['src'], 0, 7) != 'http://')) {
-                //$ptoptionstring .= '#'.get_bloginfo('url').'/';
-            }
-            
-            $newsrc = getphpthumburl($image['src'], $ptoptionstring);
-            $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
-            $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
-            $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
-            $newtag = str_replace('  ', ' ', $newtag);
-            
-            $imagesearch[$n] = $imagetag;
-            $imagereplace[$n] = $newtag;
         }
     }
     
