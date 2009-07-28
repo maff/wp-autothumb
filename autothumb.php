@@ -4,7 +4,7 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.4.1
+Version: 0.4.2
 Author URI: http://ailoo.net/
 */
 
@@ -138,6 +138,9 @@ function autothumb($content)
                 
                 // allow enlargement of images, uncomment this if you want
                 $ptoptions[] = 'aoe=1';
+                
+                // best quality
+                $ptoptions[] = 'q=100';
                 
                 // thanks to netProphET for this addition
                 // this allows you to set phpthumb parameters in the image URL

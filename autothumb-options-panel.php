@@ -62,7 +62,7 @@
                                 <?php
                                     $val = get_option('autothumb_clean_urls_path');
                                     if($val === false) {
-                                        $val = 'pt';
+                                        $val = 'images';
                                     }
                                 ?>
                                 <input type="text" class="regular-text" id="autothumb_clean_urls_path" name="autothumb_clean_urls_path"  value="<?php echo($val); ?>" /><br />
