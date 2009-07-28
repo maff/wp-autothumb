@@ -35,7 +35,6 @@ if (is_admin()) {
  *
  * @param  string $image        the path/URL to the image
  * @param  string $params       phpThumb parameters
- * @param  bool   $cleanUrls    use rewritten URLs (e.g. /pt/image.jpg?w=100&h=100&hash=...)
  * @param  bool   $xhtmlOutput  if set to false, URLs won't contain escaped HTML entities (e.g. &amp;)
  * @return string
  */
