@@ -22,18 +22,28 @@ define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
  * @param string $params        phpThumb parameters
  * @param bool   $xhtmlOutput   if set to false, URLs won't contain escaped HTML entities (e.g. &amp;)
  */
-function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
+function getphpthumburl($image, $params = 'w=800', $seoUrl = false, $xhtmlOutput = true)
 {
     include(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php');
 
     if(!empty($image)) {
-        $query = 'src=' . $image;
-
-        // append phpThumb parameters
-        if(!empty($params)) $query = $query . '&' . $params;
+        if(strtolower(substr($image, 0, 1)) == '/') {
+            $image = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $image);
+        } elseif(strtolower(substr($image, 0, 1)) != '/' && strtolower(substr($image, 0, 4)) != 'http') {
+            $blogurl = parse_url(get_bloginfo('wpurl'));                
+            $image = $blogurl['path'] . '/' . $image;
+        }    
+    
+        $queryString = 'src=' . $image . '&' . $params;
+    
+        if($seoUrl) {
+            $query = get_bloginfo('wpurl') . '/image/' . $image . '?' . $params;
+        } else {
+            $query = get_bloginfo('wpurl') . '/wp-content/plugins/autothumb/image.php?' . $queryString;
+        }
         
         // generate hash for security
-        $hash = md5($query . $PHPTHUMB_CONFIG['high_security_password']);
+        $hash = md5($queryString . $PHPTHUMB_CONFIG['high_security_password']);
         
         // append hash to query
         $query .= '&hash=' . $hash;    
@@ -43,11 +53,7 @@ function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
             $query = str_replace('&', '&amp;', $query);
         }
         
-        // path to image.php
-        $phpthumb = get_bloginfo('wpurl') . '/wp-content/plugins/autothumb/image.php';
-
-        // generate URL and return the result   
-        return $phpthumb . '?' . $query;
+        return $query;
     }   
     
     return false;
@@ -67,9 +73,6 @@ function autothumb($content)
     
     $pattern = '/<img[^>]*>/';
     preg_match_all($pattern, $content, $toReplace);
-    
-    if(substr($basePath, 0, 1) != '/')
-        $basePath = '/' . $basePath;
     
     for($n = 0; $n < count($toReplace[0]); $n++) {        
         $imagetag = $toReplace[0][$n];
@@ -91,12 +94,6 @@ function autothumb($content)
         $result['src'][1] = trim($result['src'][1]);
         if(!empty($result['src'][1])) {
             $image['src'] = $result['src'][1];
-            
-            if(strtolower(substr($image['src'], 0, 1)) == '/') {
-                $image['src'] = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $image['src']);
-            } elseif(strtolower(substr($image['src'], 0, 1)) != '/' && strtolower(substr($image['src'], 0, 3)) != 'http') {
-                $image['src'] = '/' . $image['src'];
-            }
             
             if(!empty($result['width'][0])) {
                 $image['width'] = str_replace('width="', '', $result['width'][0]);
@@ -153,7 +150,7 @@ function autothumb($content)
                     $ptoptionstring .= $ptoptions[$i];
                 }
                 
-                $newsrc = getphpthumburl($image['src'], $ptoptionstring);
+                $newsrc = getphpthumburl($image['src'], $ptoptionstring, true);
                 $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
                 $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
                 $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
