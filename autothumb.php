@@ -94,7 +94,7 @@ function autothumb($content)
             
             if(strtolower(substr($image['src'], 0, 1)) == '/') {
                 $image['src'] = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $image['src']);
-            } elseif(strtolower(substr($image['src'], 0, 1)) != '/') {
+            } elseif(strtolower(substr($image['src'], 0, 1)) != '/' && strtolower(substr($image['src'], 0, 3)) != 'http') {
                 $image['src'] = '/' . $image['src'];
             }
             
