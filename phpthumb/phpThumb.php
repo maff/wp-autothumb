@@ -89,14 +89,11 @@ if (!@$PHPTHUMB_CONFIG['disable_pathinfo_parsing'] && (empty($_GET) || isset($_G
 }
 
 if (@$PHPTHUMB_CONFIG['high_security_enabled']) {
-
-	$hash = md5(str_replace('&hash=' . $_GET['hash'], '', $_SERVER['QUERY_STRING']) . $PHPTHUMB_CONFIG['high_security_password']);
-
 	if (!@$_GET['hash']) {
 		$phpThumb->ErrorImage('ERROR: missing hash');
 	} elseif (strlen($PHPTHUMB_CONFIG['high_security_password']) < 5) {
 		$phpThumb->ErrorImage('ERROR: strlen($PHPTHUMB_CONFIG[high_security_password]) < 5');
-	} elseif($_GET['hash'] != $hash) {
+	} elseif ($_GET['hash'] != md5(str_replace('&hash='.$_GET['hash'], '', $_SERVER['QUERY_STRING']).$PHPTHUMB_CONFIG['high_security_password'])) {
 		$phpThumb->ErrorImage('ERROR: invalid hash');
 	}
 }
