@@ -99,7 +99,7 @@ function autothumb($content)
             
             if(strtolower(substr($image['src'], 0, 1)) == '/') {
                 $image['src'] = str_replace($_SERVER['DOCUMENT_ROOT'], $relativePath, $image['src']);
-            } elseif(strotolower(substr($image['src'], 0, 1)) != '/') {
+            } elseif(strtolower(substr($image['src'], 0, 1)) != '/') {
                 $image['src'] = $relativePath . $image['src'];
             }
             
