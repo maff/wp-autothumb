@@ -10,50 +10,56 @@ Author URI: http://ailoo.net/
 
 define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
 
-
-/* Option Panel (thanks to Ben for this addition - see comments on plugin home page)
-------------------------------------------------------------------------------------- */
-
-add_option('autothumb_high_security_password', 'Type your own password here', '', true);
-
-function autothumb_add_options()
-{
-    add_options_page('Autothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
-}
-
-function autothumb_options_subpanel()
-{
-    include('autothumb-options-panel.php');
-}
-
-function autothumb_update_high_security_password()
-{
-        $configFile = AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php';
-        $config = file($configFile);
-        
-        $needle = "/^\s*\\\$PHPTHUMB\_CONFIG\[\'high_security_password.*/";
-        
-        $i = 0;
-        foreach($config as $line){
-            $line = rtrim($line, "\r\n") . PHP_EOL;
-            if(preg_match($needle, $line))
-                $results[] = $i;
-                
-            ++$i;
-        }
-        
-        $config[$results[0]]="\$PHPTHUMB_CONFIG['high_security_password']   = '".get_option('autothumb_high_security_password')."'; // Altered by AutoThumb." . PHP_EOL;
-
-        file_put_contents($configFile, implode($config));
-}
-
-add_action('admin_menu', 'autothumb_add_options');
-add_action('update_option_autothumb_high_security_password', 'autothumb_update_high_security_password');
-
-
 /* Plugin
 ------------------------------------------------------------------------------------- */
 
+/**
+ * getphpthumburl
+ *
+ * Creates an URL to phpThumb
+ *
+ * @param string $image         the path/URL to the image
+ * @param string $params        phpThumb parameters
+ * @param bool   $xhtmlOutput   if set to false, URLs won't contain escaped HTML entities (e.g. &amp;)
+ */
+function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
+{
+    include(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php');
+
+    if(!empty($image)) {
+        $query = 'src=' . $image;
+
+        // append phpThumb parameters
+        if(!empty($params)) $query = $query . '&' . $params;
+        
+        // generate hash for security
+        $hash = md5($query . $PHPTHUMB_CONFIG['high_security_password']);
+        
+        // append hash to query
+        $query .= '&hash=' . $hash;    
+        
+        if($xhtmlOutput) {
+            // generate XHTML valid URLs
+            $query = str_replace('&', '&amp;', $query);
+        }
+        
+        // path to image.php
+        $phpthumb = get_bloginfo('wpurl') . '/wp-content/plugins/autothumb/image.php';
+
+        // generate URL and return the result   
+        return $phpthumb . '?' . $query;
+    }   
+    
+    return false;
+}
+
+/**
+ * autothumb
+ *
+ * Automatically rewrite img tags to phpThumb
+ *
+ * @param string $content       the content containing img tags
+ */
 function autothumb($content)
 {
     $imagesearch = array();
@@ -169,61 +175,49 @@ function autothumb($content)
     return $content;
 }
 
-function getphpthumburl($output, $options)
+add_filter('the_content', 'autothumb');
+
+
+/* Option Panel (thanks to Ben for this addition - see comments on plugin home page)
+------------------------------------------------------------------------------------- */
+
+add_option('autothumb_high_security_password', 'Type your own password here', '', true);
+
+function autothumb_add_options()
 {
-    include(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php');
-
-    // create options array
-    $options = explode('#', $options);
-
-    // $options[0] - query for phpThumb
-    // $options[1] - optional path to the image - with ending slash
-    // $options[2] - mode switch
-    // $options[3] - XHTML URL switch
-
-    // replace {} with [] for correct phpThumb filter calls
-    /*
-    $options[0] = str_replace('{', '[', $options[0]);
-    $options[0] = str_replace('}', ']', $options[0]);
-    */
-
-    // check mode switch and create src parameter
-    if($options[2] == 1) {
-        $src = $options[1];
-    }
-    else {
-        $src = $options[1].$output;
-    }
-
-    if(!empty($src)) {
-
-        $src = 'src='.$src;
-
-        // append phpThumb parameters
-        if(!empty($options[0])) $options[0] = '&'.$options[0];
-
-        // create full query
-        $ptquery = $src.$options[0];
-        
-        // generate hash for security
-        $hash = md5($ptquery.$PHPTHUMB_CONFIG['high_security_password']);
-        
-        // append hash to query
-        $ptquery .= '&hash='.$hash;    
-        
-        // if XHTML URL switch is not set generate valid URLs by replacing & with &amp;
-        if($options[3] != 1) {
-            // generate XHTML valid URLs
-            $ptquery = str_replace('&', '&amp;', $ptquery);
-        }
-        
-        // path to image.php
-        $phpthumb = get_bloginfo('wpurl') . '/wp-content/plugins/autothumb/image.php';
-
-        // generate URL and return the result   
-        return $phpthumb . '?' . $ptquery;
-    }   
-    else return false;
+    add_options_page('Autothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
 }
 
-add_filter('the_content', 'autothumb');
+function autothumb_options_subpanel()
+{
+    include('autothumb-options-panel.php');
+}
+
+function autothumb_update_high_security_password()
+{
+        $configFile = AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php';
+        $config = file($configFile);
+        
+        $needle = "/^\s*\\\$PHPTHUMB\_CONFIG\[\'high_security_password.*/";
+        
+        $result = null;
+        $i = 0;
+        foreach($config as $line){
+            $line = rtrim($line, "\r\n") . PHP_EOL;
+            if(preg_match($needle, $line)) {
+                $result = $i;
+                break;
+            }
+                
+            ++$i;
+        }
+        
+        if($result !== null) {
+            $config[$result] = "\$PHPTHUMB_CONFIG['high_security_password']   = '" . get_option('autothumb_high_security_password') . "';  // required if 'high_security_enabled' is true, must be at least 5 characters long" . PHP_EOL;
+        }
+
+        file_put_contents($configFile, implode($config));
+}
+
+add_action('admin_menu', 'autothumb_add_options');
+add_action('update_option_autothumb_high_security_password', 'autothumb_update_high_security_password');
