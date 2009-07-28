@@ -68,11 +68,6 @@ function autothumb($content)
     $pattern = '/<img[^>]*>/';
     preg_match_all($pattern, $content, $toReplace);
     
-    // get relative path from document root (e.g. if WP is installed in subdirectory)
-    $relativePath = str_replace('\\', '/', AUTOTHUMB_PATH);
-    $relativePath = str_replace('wp-content/plugins/autothumb/', '', $relativePath);
-    $relativePath = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $relativePath);
-    
     if(substr($basePath, 0, 1) != '/')
         $basePath = '/' . $basePath;
     
@@ -98,9 +93,9 @@ function autothumb($content)
             $image['src'] = $result['src'][1];
             
             if(strtolower(substr($image['src'], 0, 1)) == '/') {
-                $image['src'] = str_replace($_SERVER['DOCUMENT_ROOT'], $relativePath, $image['src']);
+                $image['src'] = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $image['src']);
             } elseif(strtolower(substr($image['src'], 0, 1)) != '/') {
-                $image['src'] = $relativePath . $image['src'];
+                $image['src'] = '/' . $image['src'];
             }
             
             if(!empty($result['width'][0])) {
