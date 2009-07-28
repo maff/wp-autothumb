@@ -1,5 +1,5 @@
 <div class="wrap">
-    <div class="icon32"><br /></div>
+    <div id="icon-options-general" class="icon32"><br /></div>
     <h2>Autothumb</h2>    
     <form method="post" action="options.php">
         <?php settings_fields('autothumb'); ?>
