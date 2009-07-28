@@ -8,6 +8,16 @@ Version: 0.3.1.1
 Author URI: http://ailoo.net/
 */
 
+/**
+ * Changelog
+ * ---------
+ *
+ * 0.3.2            Rewrite path and URL handling
+ *                  Add "clean URL" feature
+ *                  Improve options panel
+ */
+
+
 define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
 
 /* Initialization
