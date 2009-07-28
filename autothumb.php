@@ -10,6 +10,21 @@ Author URI: http://ailoo.net/
 
 define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
 
+/* Initialization
+------------------------------------------------------------------------------------- */
+
+if (is_admin()) {
+    add_action('admin_menu', 'autothumb_add_options_page');
+    add_action('admin_init', 'autothumb_check_options');
+    add_action('admin_init', 'autothumb_register_settings');
+    add_action('admin_init', 'autothumb_generate_rewrite_rules');
+} else {
+    if(get_option('autothumb_apply_the_content') == 1) {
+        add_filter('the_content', 'autothumb');
+    }
+}
+
+
 /* Plugin
 ------------------------------------------------------------------------------------- */
 
@@ -20,9 +35,10 @@ define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
  *
  * @param string $image         the path/URL to the image
  * @param string $params        phpThumb parameters
+ * @param bool   $cleanUrls     use rewritten URLs (e.g. /pt/image.jpg?w=100&h=100&hash=...)
  * @param bool   $xhtmlOutput   if set to false, URLs won't contain escaped HTML entities (e.g. &amp;)
  */
-function getphpthumburl($image, $params = 'w=800', $seoUrl = false, $xhtmlOutput = true)
+function getphpthumburl($image, $params = 'w=800', $cleanUrls = false, $xhtmlOutput = true)
 {
     include(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php');
 
@@ -35,9 +51,9 @@ function getphpthumburl($image, $params = 'w=800', $seoUrl = false, $xhtmlOutput
         }    
     
         $queryString = 'src=' . $image . '&' . $params;
-    
-        if($seoUrl) {
-            $query = get_bloginfo('wpurl') . '/image/' . $image . '?' . $params;
+        
+        if($cleanUrls) {
+            $query = get_bloginfo('wpurl') . '/' . get_option('autothumb_clean_urls_path') . '/' . $image . '?' . $params;
         } else {
             $query = get_bloginfo('wpurl') . '/wp-content/plugins/autothumb/image.php?' . $queryString;
         }
@@ -150,7 +166,12 @@ function autothumb($content)
                     $ptoptionstring .= $ptoptions[$i];
                 }
                 
-                $newsrc = getphpthumburl($image['src'], $ptoptionstring, true);
+                $clean_urls = false;
+                if(get_option('autothumb_clean_urls') == 1) {
+                    $clean_urls = true;
+                }
+                
+                $newsrc = getphpthumburl($image['src'], $ptoptionstring, $clean_urls);
                 $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
                 $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
                 $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
@@ -169,17 +190,30 @@ function autothumb($content)
     return $content;
 }
 
-add_filter('the_content', 'autothumb');
 
-
-/* Option Panel (thanks to Ben for this addition - see comments on plugin home page)
+/* Option Panel (thanks to Ben for the idea - see comments on plugin home page)
 ------------------------------------------------------------------------------------- */
 
-add_option('autothumb_high_security_password', 'Type your own password here', '', true);
 
-function autothumb_add_options()
+function autothumb_add_options_page()
 {
     add_options_page('Autothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
+}
+
+function autothumb_register_settings()
+{
+    register_setting('autothumb', 'autothumb_high_security_password', 'autothumb_high_security_password_update');
+    register_setting('autothumb', 'autothumb_apply_the_content');
+    register_setting('autothumb', 'autothumb_clean_urls');    
+    register_setting('autothumb', 'autothumb_clean_urls_path', 'autothumb_clean_urls_path_update');    
+}
+
+function autothumb_check_options()
+{
+    $high_security_password = get_option('autothumb_high_security_password');
+    if($high_security_password === false || empty($high_security_password)) {
+        add_action('admin_notices', create_function('', "echo '<div class=\"error\"><p>AutoThumb High Security Password is not set. Please update your <a href=\"" . get_bloginfo('wpurl') . "/wp-admin/options-general.php?page=autothumb.php\">settings</a>.</p></div>';"));    
+    }
 }
 
 function autothumb_options_subpanel()
@@ -187,31 +221,63 @@ function autothumb_options_subpanel()
     include('autothumb-options-panel.php');
 }
 
-function autothumb_update_high_security_password()
+// write password to config file
+function autothumb_high_security_password_update($password)
 {
-        $configFile = AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php';
-        $config = file($configFile);
-        
-        $needle = "/^\s*\\\$PHPTHUMB\_CONFIG\[\'high_security_password.*/";
-        
-        $result = null;
-        $i = 0;
-        foreach($config as $line){
-            $line = rtrim($line, "\r\n") . PHP_EOL;
-            if(preg_match($needle, $line)) {
-                $result = $i;
-                break;
-            }
-                
-            ++$i;
-        }
-        
-        if($result !== null) {
-            $config[$result] = "\$PHPTHUMB_CONFIG['high_security_password']   = '" . get_option('autothumb_high_security_password') . "';  // required if 'high_security_enabled' is true, must be at least 5 characters long" . PHP_EOL;
-        }
+    $password = trim($password);
+    if(strlen($password) < 5) return;
 
-        file_put_contents($configFile, implode($config));
+    $configFile = AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php';
+    $config = file($configFile);
+    
+    $needle = "/^\s*\\\$PHPTHUMB\_CONFIG\[\'high_security_password.*/";
+    
+    $result = null;
+    $i = 0;
+    foreach($config as $line){
+        $line = rtrim($line, "\r\n") . PHP_EOL;
+        if(preg_match($needle, $line)) {
+            $result = $i;
+            break;
+        }
+            
+        ++$i;
+    }
+    
+    if($result !== null) {
+        $config[$result] = "\$PHPTHUMB_CONFIG['high_security_password']   = '" . $password . "';  // required if 'high_security_enabled' is true, must be at least 5 characters long" . PHP_EOL;
+    }
+
+    file_put_contents($configFile, implode($config));
+    return $password;
 }
 
-add_action('admin_menu', 'autothumb_add_options');
-add_action('update_option_autothumb_high_security_password', 'autothumb_update_high_security_password');
+function autothumb_clean_urls_path_update($path)
+{
+    $path = trim($path, '/\\ ');
+    autothumb_generate_rewrite_rules(false, $path, true);
+    return $path;
+}
+
+function autothumb_generate_rewrite_rules($_switch = false, $_path = false, $_flush = false)
+{
+    global $wp_rewrite;
+    
+    $switch = ($_switch !== false) ? $_switch : get_option('autothumb_clean_urls');
+    $path = ($_path !== false) ? $_path : get_option('autothumb_clean_urls_path');
+    
+    if($switch == 1 && $path !== false && !empty($path)) {
+        $wp_rewrite->non_wp_rules = array($path . '/(.*)$' => 'wp-content/plugins/autothumb/image.php?$1');
+    }
+    
+    if($_flush) {
+        $wp_rewrite->flush_rules();
+    }
+}
+
+function autothumb_print_rewrite_rules()
+{
+    global $wp_rewrite;
+    autothumb_generate_rewrite_rules();
+    print_r($wp_rewrite->mod_rewrite_rules());
+}
