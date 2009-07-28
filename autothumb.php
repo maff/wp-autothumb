@@ -4,19 +4,9 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.3.1.1
+Version: 0.4
 Author URI: http://ailoo.net/
 */
-
-/**
- * Changelog
- * ---------
- *
- * 0.3.2            Rewrite path and URL handling
- *                  Add "clean URL" feature
- *                  Improve options panel
- */
-
 
 define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
 
@@ -25,7 +15,7 @@ define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
 
 if (is_admin()) {
     add_action('admin_menu', 'autothumb_add_options_page');
-    add_action('admin_init', 'autothumb_check_options');
+    add_action('admin_init', 'autothumb_check');
     add_action('admin_init', 'autothumb_register_settings');
     add_action('admin_init', 'autothumb_generate_rewrite_rules');
 } else {
@@ -43,12 +33,13 @@ if (is_admin()) {
  *
  * Creates an URL to phpThumb
  *
- * @param string $image         the path/URL to the image
- * @param string $params        phpThumb parameters
- * @param bool   $cleanUrls     use rewritten URLs (e.g. /pt/image.jpg?w=100&h=100&hash=...)
- * @param bool   $xhtmlOutput   if set to false, URLs won't contain escaped HTML entities (e.g. &amp;)
+ * @param  string $image        the path/URL to the image
+ * @param  string $params       phpThumb parameters
+ * @param  bool   $cleanUrls    use rewritten URLs (e.g. /pt/image.jpg?w=100&h=100&hash=...)
+ * @param  bool   $xhtmlOutput  if set to false, URLs won't contain escaped HTML entities (e.g. &amp;)
+ * @return string
  */
-function getphpthumburl($image, $params = 'w=800', $cleanUrls = false, $xhtmlOutput = true)
+function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
 {
     include(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php');
 
@@ -62,7 +53,12 @@ function getphpthumburl($image, $params = 'w=800', $cleanUrls = false, $xhtmlOut
     
         $queryString = 'src=' . $image . '&' . $params;
         
-        if($cleanUrls) {
+        $clean_urls = false;
+        if(get_option('autothumb_clean_urls') == 1) {
+            $clean_urls = true;
+        }
+        
+        if($clean_urls) {
             $query = get_bloginfo('wpurl') . '/' . get_option('autothumb_clean_urls_path') . '/' . $image . '?' . $params;
         } else {
             $query = get_bloginfo('wpurl') . '/wp-content/plugins/autothumb/image.php?' . $queryString;
@@ -90,7 +86,8 @@ function getphpthumburl($image, $params = 'w=800', $cleanUrls = false, $xhtmlOut
  *
  * Automatically rewrite img tags to phpThumb
  *
- * @param string $content       the content containing img tags
+ * @param  string $content  the content containing img tags
+ * @return string
  */
 function autothumb($content)
 {
@@ -176,12 +173,7 @@ function autothumb($content)
                     $ptoptionstring .= $ptoptions[$i];
                 }
                 
-                $clean_urls = false;
-                if(get_option('autothumb_clean_urls') == 1) {
-                    $clean_urls = true;
-                }
-                
-                $newsrc = getphpthumburl($image['src'], $ptoptionstring, $clean_urls);
+                $newsrc = getphpthumburl($image['src'], $ptoptionstring);
                 $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
                 $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
                 $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
@@ -218,8 +210,12 @@ function autothumb_register_settings()
     register_setting('autothumb', 'autothumb_clean_urls_path', 'autothumb_clean_urls_path_update');    
 }
 
-function autothumb_check_options()
+function autothumb_check()
 {
+    if(!is_writable(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php')) {
+        add_action('admin_notices', create_function('', "echo '<div class=\"error\"><p>AutoThumb is not able to write to the phpThumb.config.php file. Please fix file permissions or edit the file manually.</p></div>';"));            
+    }
+
     $high_security_password = get_option('autothumb_high_security_password');
     if($high_security_password === false || empty($high_security_password)) {
         add_action('admin_notices', create_function('', "echo '<div class=\"error\"><p>AutoThumb High Security Password is not set. Please update your <a href=\"" . get_bloginfo('wpurl') . "/wp-admin/options-general.php?page=autothumb.php\">settings</a>.</p></div>';"));    
@@ -238,27 +234,31 @@ function autothumb_high_security_password_update($password)
     if(strlen($password) < 5) return;
 
     $configFile = AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php';
-    $config = file($configFile);
     
-    $needle = "/^\s*\\\$PHPTHUMB\_CONFIG\[\'high_security_password.*/";
-    
-    $result = null;
-    $i = 0;
-    foreach($config as $line){
-        $line = rtrim($line, "\r\n") . PHP_EOL;
-        if(preg_match($needle, $line)) {
-            $result = $i;
-            break;
+    if(is_writable($configFile)) {
+        $config = file($configFile);
+        
+        $needle = "/^\s*\\\$PHPTHUMB\_CONFIG\[\'high_security_password.*/";
+        
+        $result = null;
+        $i = 0;
+        foreach($config as $line){
+            $line = rtrim($line, "\r\n") . PHP_EOL;
+            if(preg_match($needle, $line)) {
+                $result = $i;
+                break;
+            }
+                
+            ++$i;
         }
-            
-        ++$i;
+        
+        if($result !== null) {
+            $config[$result] = "\$PHPTHUMB_CONFIG['high_security_password']   = '" . $password . "';  // required if 'high_security_enabled' is true, must be at least 5 characters long" . PHP_EOL;
+        }
+
+        file_put_contents($configFile, implode($config));
     }
     
-    if($result !== null) {
-        $config[$result] = "\$PHPTHUMB_CONFIG['high_security_password']   = '" . $password . "';  // required if 'high_security_enabled' is true, must be at least 5 characters long" . PHP_EOL;
-    }
-
-    file_put_contents($configFile, implode($config));
     return $password;
 }
 
