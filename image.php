@@ -5,7 +5,7 @@ if(substr($_SERVER['QUERY_STRING'], 0, 4) != 'src=') {
     } elseif(strtolower(substr($_SERVER['QUERY_STRING'], 0, 4)) == 'http') {
         $search = array('http:/', 'https:/');
         $replace = array('http://', 'https://');
-        $_SERVER['QUERY_STRING'] = str_replace($search, $replace, $_SERVER['QUERY_STRING']);    
+        $_SERVER['QUERY_STRING'] = str_replace($search, $replace, $_SERVER['QUERY_STRING']);
     } else {
         $_SERVER['QUERY_STRING'] = '/' . $_SERVER['QUERY_STRING'];
     }

@@ -4,7 +4,7 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.4.3
+Version: 0.4.4
 Author URI: http://ailoo.net/
 */
 
@@ -43,12 +43,15 @@ function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
     include(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php');
 
     if(!empty($image)) {
+        $httpSrc = false;
         if(strtolower(substr($image, 0, 1)) == '/') {
             $image = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $image);
-        } elseif(strtolower(substr($image, 0, 1)) != '/' && strtolower(substr($image, 0, 4)) != 'http') {
+        } elseif(strtolower(substr($image, 0, 4)) == 'http') {
+            $httpSrc = true;
+        } else {
             $blogurl = parse_url(get_bloginfo('wpurl'));                
             $image = $blogurl['path'] . '/' . $image;
-        }    
+        }  
     
         $queryString = 'src=' . $image . '&' . $params;
         
@@ -58,7 +61,12 @@ function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
         }
         
         if($clean_urls) {
-            $query = get_bloginfo('wpurl') . '/' . get_option('autothumb_clean_urls_path') . '/' . $image . '?' . $params;
+            $imageSeparator = '';
+            if($httpSrc) {
+                $imageSeparator = '/';
+            }
+        
+            $query = get_bloginfo('wpurl') . '/' . get_option('autothumb_clean_urls_path') . $imageSeparator . $image . '?' . $params;
         } else {
             $query = get_bloginfo('wpurl') . '/wp-content/plugins/autothumb/image.php?' . $queryString;
         }
