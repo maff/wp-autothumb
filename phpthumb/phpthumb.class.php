@@ -84,9 +84,9 @@ class phpthumb {
 	var $config_error_image_width                    = 400;
 	var $config_error_image_height                   = 100;
 	var $config_error_message_image_default          = '';
-	var $config_error_bgcolor                        = 'CCCCFF';
-	var $config_error_textcolor                      = 'FF0000';
-	var $config_error_fontsize                       = 1;
+	var $config_error_bgcolor                        = '333333';
+	var $config_error_textcolor                      = 'FFFFFF';
+	var $config_error_fontsize                       = 2;
 	var $config_error_die_on_error                   = false;
 	var $config_error_silent_die_on_error            = false;
 	var $config_error_die_on_source_failure          = true;
@@ -3700,7 +3700,7 @@ exit;
 		$width  = ($width  ? $width  : $this->config_error_image_width);
 		$height = ($height ? $height : $this->config_error_image_height);
 
-		$text = 'phpThumb() v'.$this->phpthumb_version."\n\n".$text;
+		// $text = 'phpThumb() v'.$this->phpthumb_version."\n\n".$text;
 		if ($this->config_disable_debug) {
 			$text = 'Error messages disabled';
 		}
