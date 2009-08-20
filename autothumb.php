@@ -104,7 +104,9 @@ function autothumb($content)
     $pattern = '/<img[^>]*>/';
     preg_match_all($pattern, $content, $toReplace);
     
-    for($n = 0; $n < count($toReplace[0]); $n++) {        
+    for($n = 0; $n < count($toReplace[0]); $n++)
+    {
+        $processImage = true;
         $imagetag = $toReplace[0][$n];
         
         $search = array();
@@ -166,31 +168,38 @@ function autothumb($content)
                         
                         if(is_array($param) && count($param) > 0)
                         {
-                            foreach($param as $element)
+                            foreach($param as $element) {
                                 $ptoptions[] = "{$k}[]={$element}";
+                            }
                         }
                         else
                         {
+                            if($k == 'process' && $param == '0') {
+                                $processImage = false;
+                            }
+                            
                             $ptoptions[] = "{$k}={$param}";
                         }
                     }
                 }
                 unset($aParam, $param);
                 
-                $ptoptionstring = '';
-                for($i = 0; $i < count($ptoptions); $i++) {
-                    if($i != 0) $ptoptionstring .= '&';
-                    $ptoptionstring .= $ptoptions[$i];
+                if($processImage) {
+                    $ptoptionstring = '';
+                    for($i = 0; $i < count($ptoptions); $i++) {
+                        if($i != 0) $ptoptionstring .= '&';
+                        $ptoptionstring .= $ptoptions[$i];
+                    }
+                    
+                    $newsrc = getphpthumburl($image['src'], $ptoptionstring);
+                    $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
+                    $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
+                    $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
+                    $newtag = str_replace('  ', ' ', $newtag);
+                    
+                    $imagesearch[$n] = $imagetag;
+                    $imagereplace[$n] = $newtag;
                 }
-                
-                $newsrc = getphpthumburl($image['src'], $ptoptionstring);
-                $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
-                $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
-                $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
-                $newtag = str_replace('  ', ' ', $newtag);
-                
-                $imagesearch[$n] = $imagetag;
-                $imagereplace[$n] = $newtag;
             }
         }
     }
