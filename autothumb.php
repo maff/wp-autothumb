@@ -4,7 +4,7 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.5
+Version: 0.5.1
 Author URI: http://ailoo.net/
 */
 
@@ -47,7 +47,16 @@ function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
         if(strtolower(substr($image, 0, 1)) == '/') {
             $image = str_replace($_SERVER['DOCUMENT_ROOT'], '/', $image);
         } elseif(strtolower(substr($image, 0, 4)) == 'http') {
-            $httpSrc = true;
+            $wordpress_url = parse_url(get_bloginfo('url'));
+            $image_url = parse_url($image);
+            
+            // trim URL when it points to the same host
+            if($wordpress_url['hostname'] == $image_url['hostname']) {
+                $image = $image_url['path'];
+                $httpSrc = false;
+            } else {
+                $httpSrc = true;
+            }
         } else {
             $blogurl = parse_url(get_bloginfo('wpurl'));                
             $image = $blogurl['path'] . '/' . $image;
@@ -122,10 +131,6 @@ function autothumb($content)
         $search['phpthumb'] = '/phpThumb.php/';
         
         preg_match($search['process'], $imagetag, $result['process']);
-        
-        echo "<!--";
-        print_r($result['process']);
-        echo "-->";
         
         // check process html attribute...abort if false
         if(count($result['process']) == 2) {
