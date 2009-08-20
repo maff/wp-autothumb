@@ -4,7 +4,7 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.4.4
+Version: 0.5
 Author URI: http://ailoo.net/
 */
 
@@ -164,12 +164,6 @@ function autothumb($content)
                     if(!empty($image['width'])) $ptoptions[] = 'w=' . $image['width'];
                     if(!empty($image['height'])) $ptoptions[] = 'h=' . $image['height'];
                     
-                    // allow enlargement of images, uncomment this if you want
-                    $ptoptions[] = 'aoe=1';
-                    
-                    // best quality
-                    $ptoptions[] = 'q=100';
-                    
                     // thanks to netProphET for this addition
                     // this allows you to set phpthumb parameters in the image URL
                     // see http://modxcms.com/forums/index.php/topic,14858.msg102750.html#msg102750
@@ -203,11 +197,27 @@ function autothumb($content)
                     }
                     unset($aParam, $param);
                     
+                    // call phpthumb only if there are any parameters set
+                    if(count($ptoptions) == 0) {
+                        $processImage = false;
+                    } else {
+                        $additional_options = array();
+                    
+                        // allow enlargement of images, uncomment this if you want
+                        $additional_options[] = 'aoe=1';
+                        
+                        // best quality
+                        $additional_options[] = 'q=100';
+                        
+                        // merge default options and overwrite default options if necessary
+                        $phpthumb_options = array_merge($additional_options, $ptoptions);
+                    }
+                    
                     if($processImage) {
                         $ptoptionstring = '';
-                        for($i = 0; $i < count($ptoptions); $i++) {
+                        for($i = 0; $i < count($phpthumb_options); $i++) {
                             if($i != 0) $ptoptionstring .= '&';
-                            $ptoptionstring .= $ptoptions[$i];
+                            $ptoptionstring .= $phpthumb_options[$i];
                         }
                         
                         $newsrc = getphpthumburl($image['src'], $ptoptionstring);
