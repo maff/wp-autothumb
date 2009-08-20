@@ -114,7 +114,7 @@ function autothumb($content)
         $result = array();
         $image = array();
         
-        $search['process'] = '/process="[0-1]"/';
+        $search['process'] = '/process="([0-1])"/';
         $search['src'] = '/src="([^"]*)"/';
         $search['width'] = '/width="[0-9]+"/';
         $search['height'] = '/height="[0-9]+"/';
