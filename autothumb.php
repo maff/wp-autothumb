@@ -123,6 +123,10 @@ function autothumb($content)
         
         preg_match($search['process'], $imagetag, $result['process']);
         
+        echo "<!--";
+        print_r($result['process']);
+        echo "-->";
+        
         // check process html attribute...abort if false
         if(!empty($result['process'][1])) {
             if($result['process'][1] == 0) {
