@@ -108,100 +108,118 @@ function autothumb($content)
     {
         $processImage = true;
         $imagetag = $toReplace[0][$n];
+        $newtag = $imagetag;
         
         $search = array();
         $result = array();
         $image = array();
         
+        $search['process'] = '/process="[0-1]"/';
         $search['src'] = '/src="([^"]*)"/';
         $search['width'] = '/width="[0-9]+"/';
         $search['height'] = '/height="[0-9]+"/';
         $search['imagephp'] = '/image.php/';
         $search['phpthumb'] = '/phpThumb.php/';
         
-        preg_match($search['src'], $imagetag, $result['src']);
-        preg_match($search['width'], $imagetag, $result['width']);
-        preg_match($search['height'], $imagetag, $result['height']);
+        preg_match($search['process'], $imagetag, $result['process']);
         
-        $result['src'][1] = trim($result['src'][1]);
-        if(!empty($result['src'][1])) {
-            $image['src'] = $result['src'][1];
-            
-            if(!empty($result['width'][0])) {
-                $image['width'] = str_replace('width="', '', $result['width'][0]);
-                $image['width'] = trim(str_replace('"', '', $image['width']));
+        // check process html attribute...abort if false
+        if(!empty($result['process'][1])) {
+            if($result['process'][1] == 0) {
+                $processImage = false;
             }
             
-            if(!empty($result['height'][0])) {
-                $image['height'] = str_replace('height="', '', $result['height'][0]);
-                $image['height'] = trim(str_replace('"', '', $image['height']));
-            }
+            $newtag = preg_replace('/ process="[0-1]"/', '', $newtag);
+            $newtag = str_replace('  ', ' ', $newtag);
+        }
             
-            preg_match($search['imagephp'], $image['src'], $result['imagephp']);
-            preg_match($search['phpthumb'], $image['src'], $result['phpthumb']);
-
-            if(count($result['imagephp']) == 0 && count($result['phpthumb']) == 0) {
-                $ptoptions = array();
-                if(!empty($image['width'])) $ptoptions[] = 'w=' . $image['width'];
-                if(!empty($image['height'])) $ptoptions[] = 'h=' . $image['height'];
+        if($processImage) {       
+            preg_match($search['src'], $imagetag, $result['src']);
+            preg_match($search['width'], $imagetag, $result['width']);
+            preg_match($search['height'], $imagetag, $result['height']);
+            
+            $result['src'][1] = trim($result['src'][1]);
+            if(!empty($result['src'][1])) {
+                $image['src'] = $result['src'][1];
                 
-                // allow enlargement of images, uncomment this if you want
-                $ptoptions[] = 'aoe=1';
-                
-                // best quality
-                $ptoptions[] = 'q=100';
-                
-                // thanks to netProphET for this addition
-                // this allows you to set phpthumb parameters in the image URL
-                // see http://modxcms.com/forums/index.php/topic,14858.msg102750.html#msg102750
-                if(preg_match("/^([^\?]*)\?(.*)$/", $image['src'], $ma)) {
-                    $aParam = array();
-                    $image['src'] = $ma[1];
-                    
-                    $ma[2] = str_replace('{}', '[]', $ma[2]);
-                    parse_str(urldecode($ma[2]), $aParam);
-                    
-                    foreach($aParam as $k => $param) {
-                        // clean parameter keys
-                        $k = str_replace('#038;', '', $k);
-                        $k = str_replace('amp;', '', $k);
-                        
-                        if(is_array($param) && count($param) > 0)
-                        {
-                            foreach($param as $element) {
-                                $ptoptions[] = "{$k}[]={$element}";
-                            }
-                        }
-                        else
-                        {
-                            if($k == 'process' && $param == '0') {
-                                $processImage = false;
-                            }
-                            
-                            $ptoptions[] = "{$k}={$param}";
-                        }
-                    }
+                if(!empty($result['width'][0])) {
+                    $image['width'] = str_replace('width="', '', $result['width'][0]);
+                    $image['width'] = trim(str_replace('"', '', $image['width']));
                 }
-                unset($aParam, $param);
                 
-                if($processImage) {
-                    $ptoptionstring = '';
-                    for($i = 0; $i < count($ptoptions); $i++) {
-                        if($i != 0) $ptoptionstring .= '&';
-                        $ptoptionstring .= $ptoptions[$i];
+                if(!empty($result['height'][0])) {
+                    $image['height'] = str_replace('height="', '', $result['height'][0]);
+                    $image['height'] = trim(str_replace('"', '', $image['height']));
+                }
+                
+                preg_match($search['imagephp'], $image['src'], $result['imagephp']);
+                preg_match($search['phpthumb'], $image['src'], $result['phpthumb']);
+
+                if(count($result['imagephp']) == 0 && count($result['phpthumb']) == 0) {
+                    $ptoptions = array();
+                    if(!empty($image['width'])) $ptoptions[] = 'w=' . $image['width'];
+                    if(!empty($image['height'])) $ptoptions[] = 'h=' . $image['height'];
+                    
+                    // allow enlargement of images, uncomment this if you want
+                    $ptoptions[] = 'aoe=1';
+                    
+                    // best quality
+                    $ptoptions[] = 'q=100';
+                    
+                    // thanks to netProphET for this addition
+                    // this allows you to set phpthumb parameters in the image URL
+                    // see http://modxcms.com/forums/index.php/topic,14858.msg102750.html#msg102750
+                    if(preg_match("/^([^\?]*)\?(.*)$/", $image['src'], $ma)) {
+                        $aParam = array();
+                        $image['src'] = $ma[1];
+                        
+                        $ma[2] = str_replace('{}', '[]', $ma[2]);
+                        parse_str(urldecode($ma[2]), $aParam);
+                        
+                        foreach($aParam as $k => $param) {
+                            // clean parameter keys
+                            $k = str_replace('#038;', '', $k);
+                            $k = str_replace('amp;', '', $k);
+                            
+                            if(is_array($param) && count($param) > 0)
+                            {
+                                foreach($param as $element) {
+                                    $ptoptions[] = "{$k}[]={$element}";
+                                }
+                            }
+                            else
+                            {
+                                if($k == 'process' && $param == '0') {
+                                    $processImage = false;
+                                }
+                                
+                                $ptoptions[] = "{$k}={$param}";
+                            }
+                        }
                     }
+                    unset($aParam, $param);
                     
-                    $newsrc = getphpthumburl($image['src'], $ptoptionstring);
-                    $newtag = preg_replace('/src="([^"]*)"/', 'src="'.$newsrc.'"', $imagetag);
-                    $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
-                    $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
-                    $newtag = str_replace('  ', ' ', $newtag);
-                    
-                    $imagesearch[$n] = $imagetag;
-                    $imagereplace[$n] = $newtag;
+                    if($processImage) {
+                        $ptoptionstring = '';
+                        for($i = 0; $i < count($ptoptions); $i++) {
+                            if($i != 0) $ptoptionstring .= '&';
+                            $ptoptionstring .= $ptoptions[$i];
+                        }
+                        
+                        $newsrc = getphpthumburl($image['src'], $ptoptionstring);
+                        $newtag = preg_replace('/src="([^"]*)"/', 'src="' . $newsrc . '"', $newtag);
+                        $newtag = preg_replace('/ width="[^"]*"/', '', $newtag);
+                        $newtag = preg_replace('/ height="[^"]*"/', '', $newtag);
+                        $newtag = str_replace('  ', ' ', $newtag);
+                    }
                 }
             }
         }
+        
+        if($newtag != $imagetag) {
+            $imagesearch[$n] = $imagetag;
+            $imagereplace[$n] = $newtag;
+        }        
     }
     
     if(count($imagesearch) > 0 && count($imagesearch) == count($imagereplace)) {
