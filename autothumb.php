@@ -128,7 +128,7 @@ function autothumb($content)
         echo "-->";
         
         // check process html attribute...abort if false
-        if(!empty($result['process'][1])) {
+        if(count($result['process']) == 2) {
             if($result['process'][1] == 0) {
                 $processImage = false;
             }
