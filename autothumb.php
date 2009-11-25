@@ -4,7 +4,7 @@ Plugin Name: AutoThumb
 Plugin URI: http://maff.ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 Author: Mathias Geat
-Version: 0.5.1
+Version: 0.5.2
 Author URI: http://ailoo.net/
 */
 
@@ -51,7 +51,7 @@ function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
             $image_url = parse_url($image);
             
             // trim URL when it points to the same host
-            if($wordpress_url['hostname'] == $image_url['hostname']) {
+            if($wordpress_url['host'] == $image_url['host']) {
                 $image = $image_url['path'];
                 $httpSrc = false;
             } else {
