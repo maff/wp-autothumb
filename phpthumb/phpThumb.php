@@ -46,6 +46,10 @@ if (file_exists(dirname(__FILE__).'/phpThumb.config.php')) {
 	ob_start();
 	if (include_once(dirname(__FILE__).'/phpThumb.config.php')) {
 		// great
+		$override = realpath(dirname(__FILE__).'/../../phpThumb.config.override.php');
+		if (file_exists($override)) {
+			include_once($override);
+		}
 	} else {
 		ob_end_flush();
 		$phpThumb->ErrorImage('failed to include_once('.dirname(__FILE__).'/phpThumb.config.php) - realpath="'.realpath(dirname(__FILE__).'/phpThumb.config.php').'"');
