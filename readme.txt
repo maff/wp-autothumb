@@ -4,7 +4,7 @@ Donate link: http://maff.ailoo.net/about/
 Tags: images, resize, thumbnails, library, phpthumb
 Requires at least: 2.7
 Tested up to: 3.0.1
-Stable tag: 0.5.3.1
+Stable tag: 0.5.3.2
 
 A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 
