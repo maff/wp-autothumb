@@ -1,10 +1,10 @@
 === AutoThumb ===
 Contributors:
-Donate link: http://maff.ailoo.net/about/
+Donate link: http://ailoo.net/about/
 Tags: images, resize, thumbnails, library, phpthumb
 Requires at least: 2.7
 Tested up to: 3.0.1
-Stable tag: 0.5.3.2
+Stable tag: 0.5.4
 
 A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
 
@@ -16,7 +16,7 @@ The simplest way to get resized images is to specify width/height attibutes in y
 
 To prevent evil people playing with the query string and letting your server generate tons of different images, the plugin generates a hash which is a combination of the query string and a secret password you set in phpThumb's config file. So every call with different parameters (even the same image with different sizes) has another unique hash and it's not possible to generate new images without knowing the secret password.
 
-See the [plugin page](http://maff.ailoo.net/projects/autothumb/) for more details on the plugin.
+See the [plugin page](http://ailoo.net/projects/autothumb/) for more details on the plugin.
 
 == Installation ==
 
