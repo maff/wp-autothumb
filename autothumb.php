@@ -8,6 +8,7 @@
  * Author URI: http://ailoo.net/
  */
 
+define('AUTOTHUMB_VERSION', '0.5.4');
 define('AUTOTHUMB_PATH', dirname(__FILE__));
 
 /**

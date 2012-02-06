@@ -95,7 +95,7 @@
             <div class="postbox">
                 <h3>Information</h3>
                 <div class="inside less">
-                    <p>Plugin: AutoThumb | Version: 0.5.4 | <?php _e('Author') ?>: <a href="http://ailoo.net">Mathias Geat</a><br /></p>
+                    <p>Plugin: AutoThumb | Version: <?php echo AUTOTHUMB_VERSION ?> | <?php _e('Author') ?>: <a href="http://ailoo.net">Mathias Geat</a><br /></p>
                 </div>
             </div>
         </div>
