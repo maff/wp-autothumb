@@ -256,10 +256,9 @@ function autothumb($content)
  * Option Panel (thanks to Ben for the idea - see comments on plugin home page)
  * -----------------------------------------------------------------------------
  */
-
 function autothumb_add_options_page()
 {
-    add_options_page('Autothumb options', 'Autothumb', 8, basename(__FILE__), 'autothumb_options_subpanel');
+    add_options_page('Autothumb options', 'Autothumb', 'manage_options', basename(__FILE__), 'autothumb_options_subpanel');
 }
 
 function autothumb_register_settings()
