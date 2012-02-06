@@ -8,7 +8,7 @@ Version: 0.5.4
 Author URI: http://ailoo.net/
 */
 
-define(AUTOTHUMB_PATH, dirname(__FILE__) . '/');
+define('AUTOTHUMB_PATH', dirname(__FILE__));
 
 /* Initialization
 ------------------------------------------------------------------------------------- */
@@ -40,7 +40,7 @@ if (is_admin()) {
  */
 function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
 {
-    include(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php');
+    include(AUTOTHUMB_PATH . '/phpthumb/phpThumb.config.php');
 
     if(!empty($image)) {
         $httpSrc = false;
@@ -268,8 +268,8 @@ function autothumb_register_settings()
 
 function autothumb_check()
 {
-    if(!is_writable(AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php')) {
-        add_action('admin_notices', create_function('', "echo '<div class=\"error\"><p>AutoThumb is not able to write to the phpThumb.config.php file. Please fix file permissions or edit the file manually.</p></div>';"));            
+    if(!is_writable(AUTOTHUMB_PATH . '/phpthumb/phpThumb.config.php')) {
+        add_action('admin_notices', create_function('', "echo '<div class=\"error\"><p>AutoThumb is not able to write to the phpThumb.config.php file. Please fix file permissions or edit the file manually.</p></div>';"));
     }
 
     $high_security_password = get_option('autothumb_high_security_password');
@@ -289,8 +289,8 @@ function autothumb_high_security_password_update($password)
     $password = trim($password);
     if(strlen($password) < 5) return;
 
-    $configFile = AUTOTHUMB_PATH . 'phpthumb/phpThumb.config.php';
-    
+    $configFile = AUTOTHUMB_PATH . '/phpthumb/phpThumb.config.php';
+
     if(is_writable($configFile)) {
         $config = file($configFile);
         
