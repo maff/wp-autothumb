@@ -3,12 +3,12 @@
  * Plugin Name: AutoThumb
  * Plugin URI: http://ailoo.net/projects/autothumb/
  * Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into WordPress.
- * Version: 0.5.4
+ * Version: 0.6.dev
  * Author: Mathias Geat
  * Author URI: http://ailoo.net/
  */
 
-define('AUTOTHUMB_VERSION', '0.5.4');
+define('AUTOTHUMB_VERSION', '0.6.dev');
 define('AUTOTHUMB_PATH', dirname(__FILE__));
 
 /**
@@ -63,8 +63,13 @@ function getphpthumburl($image, $params = 'w=800', $xhtmlOutput = true)
                 $httpSrc = true;
             }
         } else {
+            $path = '';
             $blogurl = parse_url(get_bloginfo('wpurl'));
-            $image = $blogurl['path'] . '/' . $image;
+            if (isset($blogurl['path'])) {
+                $path = $blogurl['path'];
+            }
+
+            $image = $path . '/' . $image;
         }
 
         $queryString = 'src=' . $image . '&' . $params;
