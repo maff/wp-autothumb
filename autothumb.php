@@ -3,7 +3,7 @@
 Plugin Name: AutoThumb
 Plugin URI: http://ailoo.net/projects/autothumb/
 Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into WordPress.
-Version: 0.6
+Version: 0.6.1
 Author: Mathias Geat
 Author URI: http://ailoo.net/
 */
@@ -29,7 +29,7 @@ class AutoThumb
      *
      * @var string
      */
-    protected $version = '0.6';
+    protected $version = '0.6.1';
 
     /**
      * Determines if config and permissions are ok
