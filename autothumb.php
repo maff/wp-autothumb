@@ -1,12 +1,12 @@
 <?php
-/*
-Plugin Name: AutoThumb
-Plugin URI: http://ailoo.net/projects/autothumb/
-Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
-Author: Mathias Geat
-Version: 0.5.4
-Author URI: http://ailoo.net/
-*/
+/**
+ * Plugin Name: AutoThumb
+ * Plugin URI: http://ailoo.net/projects/autothumb/
+ * Description: A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into WordPress.
+ * Version: 0.5.4
+ * Author: Mathias Geat
+ * Author URI: http://ailoo.net/
+ */
 
 define('AUTOTHUMB_PATH', dirname(__FILE__));
 
