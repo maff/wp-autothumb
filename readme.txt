@@ -1,12 +1,12 @@
 === AutoThumb ===
-Contributors:
-Donate link: http://ailoo.net/about/
-Tags: images, resize, thumbnails, library, phpthumb
-Requires at least: 2.7
-Tested up to: 3.0.1
-Stable tag: 0.5.4
 
-A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into Wordpress.
+Donate link: http://ailoo.net/about
+Tags: images, phpthumb, resize, thumbnails, library
+Requires at least: 2.7
+Tested up to: 3.3.1
+Stable tag: 0.6.0
+
+A plugin which integrates <a href="http://phpthumb.sourceforge.net/">phpThumb</a> into WordPress.
 
 == Description ==
 
@@ -21,7 +21,7 @@ See the [plugin page](http://ailoo.net/projects/autothumb/) for more details on 
 == Installation ==
 
 1. Download the .zip file and extract it.
-1. Upload the plugin to your `/wp-content/plugins/` directory and make sure your web server has write access to the cache folder and the config file.
-1. Activate the plugin.
-1. Go to Settings - Autothumb and setup the plugin. (Especially the password as this is important to prevent abuse of the script).
-1. Have fun!
+2. Upload the plugin to your `/wp-content/plugins/` directory and make sure your web server has write access to the cache folder and the config file.
+3. Activate the plugin.
+4. Go to Settings - AutoThumb and setup the plugin
+5. Have fun!
