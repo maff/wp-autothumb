@@ -332,7 +332,11 @@ class AutoThumb
         $path = ($_path !== false) ? $_path : get_option('autothumb_clean_urls_path');
 
         if ($switch == 1 && $path !== false && !empty($path)) {
-            $wpRewrite->non_wp_rules = array($path . '/(.*)$' => 'wp-content/plugins/autothumb/image.php?$1');
+            $autoThumbRewrites = array(
+                $path . '/(.*)$' => 'wp-content/plugins/autothumb/image.php?$1'
+            );
+
+            $wpRewrite->non_wp_rules = array_merge($wpRewrite->non_wp_rules, $autoThumbRewrites);
         }
 
         if ($_flush) {
